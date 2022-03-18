@@ -1,0 +1,17 @@
+{
+
+	"Enable TagSelector in AddCards"	:"YES"
+	,"Enable TagSelector in Browser"	:"YES"
+	,"Enable TagSelector in EditNotes"	:"YES"
+
+	,"Share tag data among decks":"NO"
+
+	,"Title":"Tag Selector"
+	,"Column headline":"       Tags"
+
+	,"default number of tag fields" : 1
+
+	,"Default width for TagSelector" : 120
+	
+}
+
