@@ -7,11 +7,11 @@
 	,"Share tag data among decks":"NO"
 
 	,"Title":"Tag Selector"
-	,"Column headline":"       Tags"
+	,"Column headline":""
 
 	,"default number of tag fields" : 1
 
 	,"Default width for TagSelector" : 120
-	
+
 }
 
