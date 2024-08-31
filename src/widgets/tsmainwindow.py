@@ -6,6 +6,7 @@
 
 from ..qthelper.qtimports import QMainWindow
 from ..tsutils.glogger import gLogger
+from ..ankihelper.noteeditdialogwrapper import NoteEditDialogWrapper
 
 
 class TSMainWindow(QMainWindow):
@@ -18,7 +19,7 @@ class TSMainWindow(QMainWindow):
         this, we need to forward close events from this mainwindow
         to the surrounding dialog"""
 
-    def __init__(self, surroundingDialog):
+    def __init__(self, surroundingDialog: NoteEditDialogWrapper):
         """@param surroundingDialog: should be an addCards dialog (or similar)"""
         super(TSMainWindow, self).__init__()
         self.parentDialog = surroundingDialog
@@ -27,7 +28,7 @@ class TSMainWindow(QMainWindow):
         gLogger.debug("TSMainWindow::closeEvent")
         closeEvent.ignore()
         try:
-            self.parentDialog.reject()
+            self.parentDialog.closeWithoutSaving()
         except:
             gLogger.debug("TSMainWindow::closeEvent: reject didnt work")
             # once, this happend in the browser.

@@ -32,6 +32,7 @@ from anki.hooks import wrap # type: ignore
 from aqt.editor import Editor # type: ignore
 from aqt.browser import Browser # type: ignore
 from aqt.editcurrent import EditCurrent # type: ignore
+from aqt import gui_hooks # type: ignore
 
 from aqt.utils import showInfo # type: ignore
 
@@ -54,6 +55,7 @@ from .datapersister.sessionpersistencemgmt import SessionPersistenceMgmt
 from .config import *
 from .tagselector import *
 from .ankihelper.ankimainwindowhelper import *
+from .ankihelper.noteeditdialogwrapper import NoteEditDialogWrapper
 """
         IMPORTANT NOTE FOR STRING-MANIPULATION
 
@@ -95,20 +97,39 @@ Structure:
 """
 
 
+class TsInjector:
+    def __init__(self, dialog: NoteEditDialogWrapper):
+        self._dialog = dialog
+
+    def isTagSelectorAlreadyImplanted(self):
+        """
+        A created TagSelector will be added to the dialog object.
+        This function checks if that has already happened or not
+        """
+        return self._dialog.hasAttribute(gITEM_NAME_OF_OBJECT_IN_DIALOG)
+
+    def implantTagSelector(self, tagSelector):
+      self._dialog.setAttribute(gITEM_NAME_OF_OBJECT_IN_DIALOG, tagSelector)
 
 
 
 def main_TSInjection(ankiconfig, addCardsOrBrowserDialog):
     gLogger.debug("__init__::main_TSInjection called")
-    if(True or not hasattr(addCardsOrBrowserDialog,gITEM_NAME_OF_OBJECT_IN_DIALOG)):
+
+    dialog = NoteEditDialogWrapper(addCardsOrBrowserDialog)
+    tsinjector = TsInjector(dialog)
+
+    # todo1: can we remove "True" from this if-statement?
+    if(True or not tsinjector.isTagSelectorAlreadyImplanted()):
+
         gLogger.debug("__init__::   - create Tag selector")
         tagSelector = TagSelector(ankiconfig=ankiconfig)
         tagSelector.setData(SessionPersistenceMgmt.loadDataFromMwOrFs())
         # make our object persistent inside the dialog
-        setDialogTagSelector(addCardsOrBrowserDialog, tagSelector)
+        tsinjector.implantTagSelector(tagSelector)
 
         # create static gui
-        tagSelector.createStaticGui(addCardsOrBrowserDialog)
+        tagSelector.createStaticGui(dialog)
 
         #tagSelector.createDataDependendGui()
         tagSelector.updateGuiFromData()
@@ -202,6 +223,7 @@ def main_onBrowserItemChangedAfter(ankiconfig: dict,
 
 
 def closeTS(addCardsOrBrowserObject):
+    NoteEditDialogWrapper(addCardsOrBrowserObject)
     # make sure the window hides, if it is undocked, when form is closed
     addCardsOrBrowserObject.form.tsDockWidget.close()
 
@@ -297,24 +319,26 @@ def main_wrapFunctions(ankiconfig):
 
     if (ankiconfig["Enable TagSelector in AddCards"] == "YES"):
         AddCards.setupEditor = wrap(AddCards.setupEditor, lambda a: main_TSInjection(ankiconfig, a))
+
+
         # problem with reject is: our method is called, even if the user pressed "no"
         #   , because everything happens in the same method (see addcars.reject)
 
         # detect if the "add cards" dialog might be closed
         # Reason: <TODO>
-        # try:
-        #     # Anki  24.06.3
-        #     pass
-        # except:
-        #     try:
-        #         # newer Ankiverions:
-        #         AddCards._reject = wrap(AddCards._reject, main_onMaybeCloseAddCardsDialog,"before")
+        try:
+            # Anki  24.06.3
+            AddCards._close = wrap(AddCards._close, main_onMaybeCloseAddCardsDialog,"before")
+        except:
+            try:
+                # newer Ankiverions:
+                AddCards._reject = wrap(AddCards._reject, main_onMaybeCloseAddCardsDialog,"before")
 
-        #     except:
-        #         gLogger.debug("main_wrapFunctions()::fallback version of wraps")
-        #         # fallback for older ankiversions
-        #         AddCards.reject = wrap(AddCards.reject, main_onMaybeCloseAddCardsDialog,"before")
-        #         AddCards.reject = wrap(AddCards.reject, main_onAddCardsDialogWasNotClosed)
+            except:
+                gLogger.debug("main_wrapFunctions()::fallback version of wraps")
+                # fallback for older ankiversions
+                AddCards.reject = wrap(AddCards.reject, main_onMaybeCloseAddCardsDialog,"before")
+                AddCards.reject = wrap(AddCards.reject, main_onAddCardsDialogWasNotClosed)
 
 
     #if (config["Enable TagSelector in Browser"] == "YES"):

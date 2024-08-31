@@ -3,18 +3,19 @@ from ..widgets.tsmainwindow import TSMainWindow
 from ..datamodel.dockwidgetdata import DockWidgetData
 from ..tsutils.glogger import gLogger
 from ..widgets.tsdockwidgetgui import TSDockWidget
+from ..ankihelper.noteeditdialogwrapper import NoteEditDialogWrapper
 
 class GuiDialogInjector:
 
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def getAddonMainWindow(dialogForm, addCardsDialog):
+    def getAddonMainWindow(dialogForm, dialog: NoteEditDialogWrapper):
         """ return the addonMainWindow (that can be used from foreign classes
             as well. It will only be created, if necessary. Otherwise just
             returned"""
         if(hasattr(dialogForm, "addonMainWindow") == False):
-            mainWindow = TSMainWindow(addCardsDialog)
+            mainWindow = TSMainWindow(dialog)
             # move the current anki-content inside a main-window.
             mainWindow.setCentralWidget(dialogForm.fieldsArea)
             dialogForm.addonMainWindow = mainWindow
@@ -24,7 +25,7 @@ class GuiDialogInjector:
     def injectDockingWidget(
              ankiconfig: dict
             ,addCardsDialogForm
-            ,addCardsDialog
+            ,dialog: NoteEditDialogWrapper
             ,dockWidgetContentSizable
             ,dockWidgetData = DockWidgetData()):
         """@return: Widget for the/a new area"""
@@ -33,7 +34,7 @@ class GuiDialogInjector:
         # ----------------------------------------------------------------------
         # ---------- create main window ----------------------------------------
         # ----------------------------------------------------------------------
-        mainWindow = GuiDialogInjector.getAddonMainWindow(addCardsDialogForm, addCardsDialog)
+        mainWindow = GuiDialogInjector.getAddonMainWindow(addCardsDialogForm, dialog)
 
         """
             The Input-fields at the addcards-dialog (addCardsDialogForm.fieldsArea)
@@ -43,19 +44,19 @@ class GuiDialogInjector:
         # If we're working inside the editCurrent dialog, we need a different
         #   postion to inject our mainwindow in. Otherwise the Close-Button
         #   will go on top of the dialog
-
         posToInsert = 1
-        if(type(addCardsDialog).__name__ == "EditCurrent"):
+        if(dialog.isEditCurrentDialog()):
             posToInsert = 0
 
         # get the widget to insert the tagselector into
         tagSelectorAnchor = None
         try:
-            # older anki versions
-            tagSelectorAnchor =  addCardsDialogForm.verticalLayout
-        except:
             # anki 24.06.03
             tagSelectorAnchor =  addCardsDialogForm.verticalLayout_3
+        except:
+            # older anki versions
+            tagSelectorAnchor =  addCardsDialogForm.verticalLayout
+
 
 
         tagSelectorAnchor.insertWidget(posToInsert,mainWindow)
@@ -116,22 +117,15 @@ class GuiDialogInjector:
         # ----------------------------------------------------------------------
         # ---------------- add everything to anki object -----------------------
         # ----------------------------------------------------------------------
-        GuiDialogInjector.setCurrentDockWidget(addCardsDialog,tsDockWidget)
+        dialog.setCurrentDockWidget(tsDockWidget)
         addCardsDialogForm.tsDockWidgetContents = dockWidgetContentSizable
 
 
     # --------------------------------------------------------------------------
 
-    @staticmethod
-    def getCurrentDockWidget(dialog):
-        return dialog.form.tsDockWidget
 
     @staticmethod
-    def setCurrentDockWidget(dialog, dockwidget):
-        dialog.form.tsDockWidget = dockwidget
-
-    @staticmethod
-    def getCurrentDockWidgetData(addCardsWidget):
+    def getCurrentDockWidgetData(dialog: NoteEditDialogWrapper):
         """ This method return the DockWidgetData (only the data), that is sitting
             inside the DockWidged. The DockWidget is inside the "addCardsWidget"
             object. This class creates and enchains the Dockwidget, so it handles
@@ -140,17 +134,17 @@ class GuiDialogInjector:
         # why is this function here?
         #   this function is in this class, because the dockWidget will be created here
 
-        addCardsDialogForm = addCardsWidget.form
+        addCardsDialogForm = dialog.getForm()
         dockData = DockWidgetData()
 
-        dockWidget = GuiDialogInjector.getCurrentDockWidget(addCardsWidget)
+        dockWidget = dialog.getCurrentDockWidget()
         dockWidgetArea = addCardsDialogForm.addonMainWindow.dockWidgetArea(dockWidget)
 
         dockData.position = dockWidgetArea
         # why "isVisible**to**"?: when this function is called, the dialog is already closed
         #   so it will always not be visible. Therefore we check the state in relation
         #   to the window it's sitting in
-        dockData.isVisible = dockWidget.isVisibleTo(addCardsWidget)
+        dockData.isVisible = dockWidget.isVisibleTo(dialog.getWidget())
         dockData.isFloating = dockWidget.isFloating()
         dockData.floatingPosX = dockWidget.pos().x() #20 # TODO: put a real value here
         dockData.floatingPosY = dockWidget.pos().y() #20 # TODO: put a real value here

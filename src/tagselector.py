@@ -3,16 +3,13 @@ from .widgets.tagselectorgui import TagSelectorGui
 from .ankihelper.guidialoginjector import GuiDialogInjector
 from .datapersister.tsdatapersister import TSDataPersistent
 from .ankihelper.noteeditorwrapper import NoteEditorWrapper
-
+from .ankihelper.noteeditdialogwrapper import NoteEditDialogWrapper
 
 def getTagSelector(dialog):
     if(hasattr(dialog,"tagSelector")):
         return dialog.tagSelector
     return None
 
-
-def setDialogTagSelector(dialog, ts):
-    dialog.tagSelector = ts
 
 
 class TagSelector:
@@ -49,9 +46,10 @@ class TagSelector:
         return self.getData().getItemsAsString()
 
 
-    def createStaticGui(self, addCardsOrBrowserDialog):
-        addDialogForm = addCardsOrBrowserDialog.form
-        noteEditor = NoteEditorWrapper(addCardsOrBrowserDialog.editor)
+    def createStaticGui(self, dialog: NoteEditDialogWrapper):
+        # todo1: replace addDialogForm with a wrapper ... do we actually need it?
+        addDialogForm = dialog.getForm()
+        noteEditor = dialog.getEditor()
 
         # this will setup our gui we can operate on
         self._gui = TagSelectorGui(addDialogForm,
@@ -68,7 +66,7 @@ class TagSelector:
         GuiDialogInjector.injectDockingWidget(
                                 self._ankiconfig
                                 , addDialogForm
-                                , addCardsOrBrowserDialog
+                                , dialog
                                 , self._gui
                                 , self.getData().dockWidgetData)
 
