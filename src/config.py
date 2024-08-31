@@ -13,13 +13,6 @@ gEnableTagSelectorInEditNotes = YES
 gShareDataAmongDecks = NO # if this is said to "YES", you can access the same tags
                           #   from all decks
 
-# set string in titlebar:
-gTitleBarString = "Tag Selector"
-#gTitleBarString = "        Tags"
-
-# set column headline for Tag selector
-gColumnHeadlineString = "       Tags" # empty for no column headline
-
 # set the distance between each tags field:
 # open file "addons/tagselectorcommons/allclasses.py" and change the
 #                       value gDEFAULT_SPACE_BETWEEN_TAG_FIELDS
