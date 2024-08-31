@@ -53,7 +53,14 @@ if (version == "qt5"):
   from PyQt5.QtWidgets import QMainWindow
   from PyQt5.QtWidgets import QWidget
 
-  from PyQt5.QtWidgets import QMenu
+
+  # QMenu: create compatibility to PyQt6
+  from PyQt5.QtWidgets import QMenu as _QMenu
+  class QMenu(_QMenu):
+    def exec(self, a):
+      self._exec(a)
+
+
   from PyQt5.QtWidgets import QDockWidget
   from PyQt5.QtWidgets import QLineEdit
   from PyQt5.QtWidgets import QCheckBox
