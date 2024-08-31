@@ -3,13 +3,17 @@
 # Copyright:   (c) DarkTrick since 2016     # Licence:     CC-BY
 #-------------------------------------------------------------------------------
 
+from ..ankihelper.noteeditorwrapper import NoteEditorWrapper
+
 class ComprehensiveFunctions: # comprehensive = uebergreifend
     @staticmethod
-    def addTags(EditorObject, strTags):
-        tags = EditorObject.tags
+    def addTags(EditorObject: NoteEditorWrapper, strTags: str):
 
-        tags.setText(tags.text() + " " + strTags)
-        EditorObject.saveTags()
+        # note = EditorObject.currentNote
+
+        note = EditorObject.getNote()
+        note.add_tags_from_string_list(strTags)
+        EditorObject.tagsChanged()
         #TODO: send signal "lostfocus" would be cleaner! (aqt/editor.py:629)
 
     # --------------------------------------------------------------------
@@ -34,11 +38,10 @@ class ComprehensiveFunctions: # comprehensive = uebergreifend
 
     # ---------------------------------------------------------------------
     @staticmethod
-    def removeTags(EditorObject, strTagsToRemove):
-        currentTags = EditorObject.tags.text()
-        newTags = ComprehensiveFunctions._removeSpaceSeperatedStrFromStr(
-            currentTags, strTagsToRemove)
-        EditorObject.tags.setText(newTags)
+    def removeTags(EditorObject: NoteEditorWrapper, strTagsToRemove):
+        note = EditorObject.getNote()
+        note.remove_tags_from_string_list(strTagsToRemove)
+        EditorObject.tagsChanged()
 
         # do we need this?
         # EditorObject.saveTags()

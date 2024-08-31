@@ -2,7 +2,7 @@
 from .widgets.tagselectorgui import TagSelectorGui
 from .ankihelper.guidialoginjector import GuiDialogInjector
 from .datapersister.tsdatapersister import TSDataPersistent
-
+from .ankihelper.noteeditorwrapper import NoteEditorWrapper
 
 
 def getTagSelector(dialog):
@@ -44,18 +44,18 @@ class TagSelector:
     def getData(self):
         return self._tagSelectorData
 
-    def dugGetDataArrayAsString(self):
+    def dugGetDataArrayAsString(self) -> str:
         """return: sring of the items array"""
         return self.getData().getItemsAsString()
 
 
     def createStaticGui(self, addCardsOrBrowserDialog):
         addDialogForm = addCardsOrBrowserDialog.form
-        objectForGuiInjection = addCardsOrBrowserDialog.editor
-
+        noteEditor = NoteEditorWrapper(addCardsOrBrowserDialog.editor)
 
         # this will setup our gui we can operate on
-        self._gui = TagSelectorGui(addDialogForm,objectForGuiInjection
+        self._gui = TagSelectorGui(addDialogForm,
+                                   noteEditor
                                 ,self._ankiconfig["Column headline"]
                                 #TagSelector._minCountOfTagSelectorItems,
                                 #1,

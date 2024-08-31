@@ -11,6 +11,7 @@ from .QtAdditions import *
 from ..qthelper.qtimports import QCheckBox
 from ..qthelper.qtimports import QHBoxLayout
 from .mylineedit import MyLineEdit
+from ..ankihelper.noteeditorwrapper import NoteEditorWrapper
 
 class TSGuiItem(WidgetSizeable):
     """
@@ -41,7 +42,7 @@ class TSGuiItem(WidgetSizeable):
     def __init__(self,
                  removeMeCallbackFunc,
                  intNamePostfix,
-                 aqtEditorObject,
+                 noteEditor: NoteEditorWrapper,
                  lineEditWidth = 70,
                  parent = None
                  ):
@@ -61,7 +62,7 @@ class TSGuiItem(WidgetSizeable):
         # - this will be our base for using in the gui:
         self._init_createBaseElement()
 
-        self._init_createCheckBox(self.baseElement, aqtEditorObject)
+        self._init_createCheckBox(self.baseElement, noteEditor)
         self._init_createLineEdit(self.baseElement)
 
         self.mouseReleaseEvent= lambda nothing: self.checkbox.toggle() # type: ignore
@@ -83,7 +84,7 @@ class TSGuiItem(WidgetSizeable):
 
     # --------------------------------------------------------------------------
 
-    def _init_createCheckBox(self, parent, aqtEditorObject):
+    def _init_createCheckBox(self, parent, noteEditor: NoteEditorWrapper):
         checkbox = QCheckBox(parent)
         self.checkbox = checkbox
         checkbox.setObjectName("checkbox" + self._namePostfix)
@@ -91,7 +92,7 @@ class TSGuiItem(WidgetSizeable):
 
         # connect checkbox with function
         self.checkbox.toggled.connect(
-            lambda checked: TSGuiItem.checkboxClicked(aqtEditorObject, checked, self) )
+            lambda checked: TSGuiItem.checkboxClicked(noteEditor, checked, self) )
             #QtCore.QObject.connect(self.checkbox, QtCore.SIGNAL("toggled(bool)"),
 
     # --------------------------------------------------------------------------
@@ -130,7 +131,7 @@ class TSGuiItem(WidgetSizeable):
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def checkboxClicked(EditorObject, checkboxValue, qtTagSelectorItem):
+    def checkboxClicked(EditorObject: NoteEditorWrapper, checkboxValue, qtTagSelectorItem):
         if( checkboxValue == True):
             ComprehensiveFunctions.addTags(EditorObject,qtTagSelectorItem.getTagsString())
         else:

@@ -33,6 +33,7 @@ from .tsguiitem import TSGuiItem
 from ..tsutils.glogger import gLogger
 from ..datamodel.tagselectoritem import TagSelectorItem
 from .tsdockwidgetgui import TSDockWidget
+from ..ankihelper.noteeditorwrapper import NoteEditorWrapper
 
 # TODO: delete before check-in
 #from aqt.utils import showInfo
@@ -65,7 +66,8 @@ class TagSelectorGui(WidgetSizeable):
 
     # --------------------------------------------------------------------
 
-    def __init__(self, aqtAddCardsDialog, aqtEditor #numOfItemsToCreate,
+    def __init__(self, aqtAddCardsDialog, noteEditor: NoteEditorWrapper
+                         #numOfItemsToCreate,
                         , columnHeadlineString
                         ,lineEditMinimumWidth = 70
                         , dockWidgetSizeWidth = 100
@@ -82,7 +84,7 @@ class TagSelectorGui(WidgetSizeable):
 
         # needed for giving the generated buttons access to the full editor-gui
         #   ( editor-gui = all the things for input inside the AddCards-dialog )
-        self.aqtEditor = aqtEditor
+        self._noteEditor = noteEditor
 
         # needed for making the docked window
         self.aqtAddCardsDialog = aqtAddCardsDialog
@@ -162,8 +164,8 @@ class TagSelectorGui(WidgetSizeable):
         contextMenu.addAction("add field", self.addTSItem)
         #contextMenu.addAction("remove last field", self.removeLastTSItem)
 
-        print("menu open " + str(position))
-        contextMenu.exec_(self.mapToGlobal(position))
+        gLogger.debug("menu open " + str(position))
+        contextMenu.exec(self.mapToGlobal(position))
         pass
 
     def addTSItem(self):
@@ -240,12 +242,12 @@ class TagSelectorGui(WidgetSizeable):
         pass
 
     def addTagSelectorItems(self,count):
-        def _genNewPair(self, aqtEditorObject):
+        def _genNewPair(self, noteEditor: NoteEditorWrapper):
             """@return: return a Layout,that contains all items"""
             qtTagSelectorItem =  TSGuiItem(  \
                                     self.removeTagSelectorItem
                                     ,len(self.tsItemsArray)
-                                    ,aqtEditorObject
+                                    ,noteEditor
                                     ,self.lineEditMinimumWidth
                                     ,self)
             self.tsItemsArray.append(qtTagSelectorItem)
@@ -259,8 +261,8 @@ class TagSelectorGui(WidgetSizeable):
                 return
 
             for i in range(0,count):
-                #self.tsItemAreaLayout.addLayout(_genNewPair(self, self.aqtEditor))
-                self.tsItemAreaLayout.addWidget(_genNewPair(self, self.aqtEditor))
+                #self.tsItemAreaLayout.addLayout(_genNewPair(self, self._noteEditor))
+                self.tsItemAreaLayout.addWidget(_genNewPair(self, self._noteEditor))
 
     # --------------------------------------------------------------------
 
