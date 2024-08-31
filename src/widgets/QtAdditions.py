@@ -3,8 +3,8 @@
 # Copyright:   (c) DarkTrick since 2016     # Licence:     CC-BY
 #-------------------------------------------------------------------------------
 
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtWidgets import QWidget
+from ..qthelper.qtimports import QtCore, QtGui
+from ..qthelper.qtimports import QWidget
 
 class WidgetSizeable(QWidget):
     #_sizehint = None
