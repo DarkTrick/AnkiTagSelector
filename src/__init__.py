@@ -114,7 +114,6 @@ from anki.hooks import wrap
 from aqt.editor import Editor
 from aqt.browser import Browser
 from aqt.editcurrent import EditCurrent
-from aqt.qt import qconnect
 
 from aqt.utils import showInfo
 
@@ -765,7 +764,7 @@ def main_onProfileLoad():
             # create tagselector specific menu item
             tsMenu = QMenu(gAddonNamePrettyString, mw)
             a = tsMenu.addAction("clear saved data")
-            qconnect(a.triggered, clearData)
+            a.triggered.connect(clearData)
 
 
             # insert it into GUI
