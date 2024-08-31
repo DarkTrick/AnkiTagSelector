@@ -26,6 +26,12 @@ class NoteEditDialogWrapper:
   def isEditCurrentDialog(self):
      return (type(self._dialog).__name__ == "EditCurrent")
 
+  def isNoteBrowserDialog(self):
+     return (type(self._dialog).__name__ == "Browser")
+
+  def idAddCardsDialog(self):
+     return (type(self._dialog).__name__ == "AddCards")
+
   def closeWithoutSaving(self):
      self._dialog.reject()
 

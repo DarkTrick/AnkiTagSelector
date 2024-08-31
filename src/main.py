@@ -119,22 +119,22 @@ def main_TSInjection(ankiconfig, addCardsOrBrowserDialog):
     dialog = NoteEditDialogWrapper(addCardsOrBrowserDialog)
     tsinjector = TsInjector(dialog)
 
-    # todo1: can we remove "True" from this if-statement?
-    if(True or not tsinjector.isTagSelectorAlreadyImplanted()):
+    # prevent double-implantment
+    if(tsinjector.isTagSelectorAlreadyImplanted()):
+        return
 
-        gLogger.debug("__init__::   - create Tag selector")
-        tagSelector = TagSelector(ankiconfig=ankiconfig)
-        tagSelector.setData(SessionPersistenceMgmt.loadDataFromMwOrFs())
-        # make our object persistent inside the dialog
-        tsinjector.implantTagSelector(tagSelector)
+    gLogger.debug("__init__::   - create Tag selector")
+    tagSelector = TagSelector(ankiconfig=ankiconfig)
+    tagSelector.setData(SessionPersistenceMgmt.loadDataFromMwOrFs())
+    # make our object persistent inside the dialog
+    tsinjector.implantTagSelector(tagSelector)
 
-        # create static gui
-        tagSelector.createStaticGui(dialog)
+    # create static gui
+    tagSelector.createStaticGui(dialog)
 
-        #tagSelector.createDataDependendGui()
-        tagSelector.updateGuiFromData()
+    #tagSelector.createDataDependendGui()
+    tagSelector.updateGuiFromData()
 
-    pass
 
 
 
@@ -310,50 +310,71 @@ def main_onProfileLoad(ankiconfig: dict):
 ##                except:
 ##                    continue
 
+
+
+def conditionalInjection(ankiconfig, editor):
+    dialog = NoteEditDialogWrapper(editor.parentWindow)
+
+    if (ankiconfig["Enable TagSelector in AddCards"] == "YES"
+        and dialog.idAddCardsDialog()):
+        main_TSInjection(ankiconfig, editor.parentWindow)
+
+    if (ankiconfig["Enable TagSelector in Browser"] == "YES"
+        and dialog.isNoteBrowserDialog()):
+        main_TSInjection(ankiconfig, editor.parentWindow)
+
+    if(ankiconfig["Enable TagSelector in EditNotes"] == "YES"
+        and dialog.isEditCurrentDialog()):
+        main_TSInjection(ankiconfig, editor.parentWindow)
+
+
 def main_wrapFunctions(ankiconfig):
     gLogger.debug("__init__::wrapFunctions")
 
 
-
-
+    # FYI: though this we can enable tag selector everywhere again
+    gui_hooks.editor_did_load_note.append(lambda editor: conditionalInjection(ankiconfig, editor))
 
     if (ankiconfig["Enable TagSelector in AddCards"] == "YES"):
-        AddCards.setupEditor = wrap(AddCards.setupEditor, lambda a: main_TSInjection(ankiconfig, a))
+    #     This still works to implement
+    #     # AddCards.setupEditor = wrap(AddCards.setupEditor, lambda a: main_TSInjection(ankiconfig, a))
 
 
         # problem with reject is: our method is called, even if the user pressed "no"
         #   , because everything happens in the same method (see addcars.reject)
 
-        # detect if the "add cards" dialog might be closed
-        # Reason: <TODO>
+         # detect if the "add cards" dialog might be closed
+         # Reason: save tag data
+         try:
+             # Anki  24.06.3
+             AddCards._close = wrap(AddCards._close, main_onMaybeCloseAddCardsDialog,"before")
+         except:
+             try:
+                 # newer Ankiverions:
+                 AddCards._reject = wrap(AddCards._reject, main_onMaybeCloseAddCardsDialog,"before")
+             except:
+                 gLogger.debug("main_wrapFunctions()::fallback version of wraps")
+                 # fallback for older ankiversions
+                 AddCards.reject = wrap(AddCards.reject, main_onMaybeCloseAddCardsDialog,"before")
+                 AddCards.reject = wrap(AddCards.reject, main_onAddCardsDialogWasNotClosed)
+
+
+    if (ankiconfig["Enable TagSelector in Browser"] == "YES"):
+        # no need for this anymore, because we have a "don't reinsert tagselector" logic running.
+        #  remove in the future.
+        # Browser.onRowChanged = wrap(Browser._onRowChanged, main_onBrowserItemChangedAfter)
+
+        Browser.closeEvent = wrap(Browser.closeEvent, main_onBrowserDialogClose, "before")
+
+    if(ankiconfig["Enable TagSelector in EditNotes"] == "YES"):
         try:
             # Anki  24.06.3
-            AddCards._close = wrap(AddCards._close, main_onMaybeCloseAddCardsDialog,"before")
+            EditCurrent.closeEvent = wrap(EditCurrent.closeEvent, lambda a,b: main_onMaybeCloseAddCardsDialog(a),"before")
+
         except:
-            try:
-                # newer Ankiverions:
-                AddCards._reject = wrap(AddCards._reject, main_onMaybeCloseAddCardsDialog,"before")
+            # older anki versions
+            EditCurrent.reject = wrap(EditCurrent.reject, main_onMaybeCloseAddCardsDialog)
 
-            except:
-                gLogger.debug("main_wrapFunctions()::fallback version of wraps")
-                # fallback for older ankiversions
-                AddCards.reject = wrap(AddCards.reject, main_onMaybeCloseAddCardsDialog,"before")
-                AddCards.reject = wrap(AddCards.reject, main_onAddCardsDialogWasNotClosed)
-
-
-    #if (config["Enable TagSelector in Browser"] == "YES"):
-    #    Browser.onRowChanged = wrap(Browser._onRowChanged, main_onBrowserItemChangedAfter)
-    #    Browser.closeEvent = wrap(Browser.closeEvent, main_onBrowserDialogClose, "before")
-    #    #Browser.closeEvent = wrap(Browser.closeEvent, test, "before")
-
-    # if(config["Enable TagSelector in EditNotes"] == "YES"):
-    #     def bufferForInjection(diag, unused):
-    #         gLogger.debug("__init__::start TS from EditCurrentDialog")
-    #         main_TSInjection(diag)
-    #         pass
-    #     EditCurrent.__init__ = wrap(EditCurrent.__init__, bufferForInjection)
-    #     EditCurrent.reject = wrap(EditCurrent.reject, main_onMaybeCloseAddCardsDialog)
-    #     pass
 
     addHook("EditorWebView.contextMenuEvent",addShowDialogMenuItemInContextMenu)
 

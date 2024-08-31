@@ -68,7 +68,7 @@ class TagSelectorGui(WidgetSizeable):
 
     def __init__(self, aqtAddCardsDialog, noteEditor: NoteEditorWrapper
                          #numOfItemsToCreate,
-                        , columnHeadlineString
+                        , columnHeadlineString: str
                         ,lineEditMinimumWidth = 70
                         , dockWidgetSizeWidth = 100
                         , dockWidgetSizeHeight = 100
