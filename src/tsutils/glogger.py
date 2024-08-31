@@ -5,5 +5,5 @@
 
 #from aqt.utils import showInfo
 from .logging import *
-gLogger = DTLogger("DTLogger.log") # todo1: remove afterwards
-#gLogger = DTLoggerMock()
+#gLogger = DTLogger("DTLogger.log") # todo1: remove afterwards
+gLogger = DTLoggerMock()

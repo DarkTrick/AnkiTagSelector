@@ -35,13 +35,13 @@ class MyLineEdit(QLineEdit):
         contextMenu.addSeparator()
         contextMenu.addAction("remove item", self.removeMe)
 
-        print("menu open " + str(position))
-        contextMenu.exec_(self.mapToGlobal(position))
+        #print("menu open " + str(position))
+        contextMenu.exec(self.mapToGlobal(position))
         pass
 
 
     def removeMe(self):
-        print("remove me called")
+        #print("remove me called")
         self.removeMeCallback(self)
         #self.addTagSelectorItems(1)
 

@@ -35,18 +35,19 @@ class TSDockWidget(QDockWidget):
         self.customContextMenuRequested.connect(self._openMenu)
 
     def _openMenu(self, position):
-        print("menu open " + str(position))
-        self.contextMenu.exec_(self.mapToGlobal(position))
+        #print("menu open " + str(position))
+        self.contextMenu.exec(self.mapToGlobal(position))
         pass
 
     def addTSItem(self):
-        print("add field called")
+        pass
+        # print("add field called")
 
     def resize(self, width, height):
         self._sizehint = QtCore.QSize(width, height)
 
     def sizeHint(self):
-        print('sizeHint:', self._sizehint)
+        #print('sizeHint:', self._sizehint)
         if self._sizehint is not None:
             return self._sizehint
         return super(TSDockWidget, self).sizeHint()
